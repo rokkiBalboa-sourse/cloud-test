@@ -12,3 +12,4 @@ data/cloud_testing.db-journal
 # Environment variables
 .env
 .env.local
+

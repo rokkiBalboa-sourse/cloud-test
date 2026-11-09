@@ -69,7 +69,7 @@ sudo ufw enable
 ### 2.1. Клонирование проекта
 ```bash
 cd /opt
-sudo git clone <URL_РЕПОЗИТОРИЯ> cloud-test
+sudo git clone https://github.com/rokkiBalboa-sourse/cloud-test.git cloud-test
 sudo chown -R $USER:$USER /opt/cloud-test
 cd /opt/cloud-test
 ```
@@ -189,3 +189,4 @@ cp /opt/cloud-test/data/cloud_testing.db /opt/backup_cloud_$(date +%Y%m%d_%H%M%S
 - **Логин:** `admin`
 - **Пароль:** `admin2027` (или `admin123`)
 - Во вкладке **«Генератор студентов»** эксперт может вставить список ФИО группы и в 1 клик выгрузить готовую ведомость с логинами и паролями для раздачи.
+
