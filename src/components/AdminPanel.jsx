@@ -24,6 +24,15 @@ export default function AdminPanel() {
   const [searchStudents, setSearchStudents] = useState('');
   const [copiedKey, setCopiedKey] = useState(null);
 
+  // Change password state
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPwd, setCurrentPwd] = useState('');
+  const [newPwd, setNewPwd] = useState('');
+  const [confirmPwd, setConfirmPwd] = useState('');
+  const [pwdError, setPwdError] = useState('');
+  const [pwdSuccess, setPwdSuccess] = useState('');
+  const [pwdLoading, setPwdLoading] = useState(false);
+
   // Answers key state
   const [answersKey, setAnswersKey] = useState(null);
   const [loadingAnswers, setLoadingAnswers] = useState(false);
@@ -186,6 +195,41 @@ export default function AdminPanel() {
     document.body.removeChild(link);
   };
 
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPwdError('');
+    setPwdSuccess('');
+
+    if (newPwd !== confirmPwd) {
+      setPwdError('Новые пароли не совпадают');
+      return;
+    }
+
+    setPwdLoading(true);
+    try {
+      const res = await fetch('/api/admin/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword: currentPwd, newPassword: newPwd })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Ошибка смены пароля');
+
+      setPwdSuccess('Пароль администратора успешно изменен!');
+      setCurrentPwd('');
+      setNewPwd('');
+      setConfirmPwd('');
+      setTimeout(() => {
+        setShowPasswordModal(false);
+        setPwdSuccess('');
+      }, 1500);
+    } catch (err) {
+      setPwdError(err.message);
+    } finally {
+      setPwdLoading(false);
+    }
+  };
+
   // Filters
   const filteredSubmissions = submissions.filter(s => 
     s.full_name.toLowerCase().includes(searchSubmissions.toLowerCase()) ||
@@ -262,6 +306,19 @@ export default function AdminPanel() {
           >
             <BookOpen className="w-3.5 h-3.5" />
             <span>Эталонные ответы к тесту</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setShowPasswordModal(true);
+              setPwdError('');
+              setPwdSuccess('');
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/60 transition-all cursor-pointer border border-transparent hover:border-zinc-700/50"
+            title="Сменить пароль администратора"
+          >
+            <Key className="w-3.5 h-3.5 text-amber-400" />
+            <span>Сменить пароль</span>
           </button>
         </div>
       </div>
@@ -989,6 +1046,105 @@ export default function AdminPanel() {
                 Закрыть
               </button>
             </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Change Password Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl overflow-hidden p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+              <div className="flex items-center gap-2">
+                <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 font-semibold">
+                  <Key className="w-4 h-4" />
+                </span>
+                <h3 className="text-sm font-bold text-white">
+                  Смена пароля администратора
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowPasswordModal(false)}
+                className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {pwdError && (
+              <div className="p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-xs text-red-400">
+                {pwdError}
+              </div>
+            )}
+
+            {pwdSuccess && (
+              <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-xs text-emerald-400 flex items-center gap-2">
+                <Check className="w-4 h-4 shrink-0" />
+                <span>{pwdSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleChangePassword} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-medium text-zinc-300 mb-1">
+                  Текущий пароль <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={currentPwd}
+                  onChange={(e) => setCurrentPwd(e.target.value)}
+                  placeholder="Введите текущий пароль"
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-300 mb-1">
+                  Новый пароль <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={newPwd}
+                  onChange={(e) => setNewPwd(e.target.value)}
+                  placeholder="Минимум 4 символа"
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-300 mb-1">
+                  Повторите новый пароль <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={confirmPwd}
+                  onChange={(e) => setConfirmPwd(e.target.value)}
+                  placeholder="Повторите новый пароль"
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  className="px-3.5 py-2 rounded-lg bg-zinc-800 text-xs text-zinc-300 hover:text-white transition-all cursor-pointer"
+                >
+                  Отмена
+                </button>
+                <button
+                  type="submit"
+                  disabled={pwdLoading}
+                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white shadow-md shadow-blue-600/20 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {pwdLoading ? 'Сохранение...' : 'Сохранить пароль'}
+                </button>
+              </div>
+            </form>
 
           </div>
         </div>

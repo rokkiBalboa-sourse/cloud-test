@@ -74,10 +74,7 @@ app.post('/api/auth/login', (req, res) => {
   const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
   const user = stmt.get(username.trim());
 
-  const isAdminPassword = user && user.role === 'admin' && (password === 'admin2027' || password === 'admin123' || password === 'admin');
-  const isMatch = user && (user.password === password || isAdminPassword);
-
-  if (!user || !isMatch) {
+  if (!user || user.password !== password) {
     return res.status(401).json({ error: 'Неверный логин или пароль' });
   }
 
@@ -371,6 +368,26 @@ app.delete('/api/admin/users/:id', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Ошибка удаления пользователя: ' + err.message });
   }
+});
+
+// Admin: Change password
+app.post('/api/admin/change-password', (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'Укажите текущий и новый пароль' });
+  }
+
+  const admin = db.prepare('SELECT * FROM users WHERE username = "admin"').get();
+  if (!admin || admin.password !== currentPassword) {
+    return res.status(401).json({ error: 'Текущий пароль указан неверно' });
+  }
+
+  if (newPassword.trim().length < 4) {
+    return res.status(400).json({ error: 'Новый пароль должен содержать минимум 4 символа' });
+  }
+
+  db.prepare('UPDATE users SET password = ? WHERE username = "admin"').run(newPassword.trim());
+  res.json({ success: true, message: 'Пароль администратора успешно изменен' });
 });
 
 // Admin: Get authoritative answers key
