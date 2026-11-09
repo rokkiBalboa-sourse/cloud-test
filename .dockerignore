@@ -1,0 +1,8 @@
+node_modules
+data/*.db
+dist
+.git
+*.docx
+kz_text.txt
+ok_text.txt
+

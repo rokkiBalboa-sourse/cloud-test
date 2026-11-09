@@ -1,0 +1,13 @@
+services:
+  cloud-test:
+    build: .
+    container_name: cloud_testing_platform
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    volumes:
+      - ./data:/app/data
+

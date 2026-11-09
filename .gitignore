@@ -1,0 +1,14 @@
+node_modules/
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# SQLite runtime database
+data/cloud_testing.db
+data/cloud_testing.db-journal
+
+# Environment variables
+.env
+.env.local
