@@ -212,7 +212,17 @@ export default function AdminPanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword: currentPwd, newPassword: newPwd })
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data = {};
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        if (!res.ok) {
+          throw new Error(`Ошибка сервера (${res.status} ${res.statusText}). Выполните на сервере: docker compose up -d --build`);
+        }
+        throw new Error('Некорректный ответ сервера');
+      }
+
       if (!res.ok) throw new Error(data.error || 'Ошибка смены пароля');
 
       setPwdSuccess('Пароль администратора успешно изменен!');
